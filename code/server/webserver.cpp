@@ -20,7 +20,7 @@ WebServer::WebServer(
     HttpConn::userCount = 0;
     HttpConn::srcDir = srcDir_;
 
-    // 初始化数据库连接池
+    // 先创建一个对象，再初始化数据库连接池
     SqlConnPool::Instance()->Init("localhost", sqlPort, sqlUser, sqlPwd, dbName, connPoolNum);
 
     // 初始化事件的模式
