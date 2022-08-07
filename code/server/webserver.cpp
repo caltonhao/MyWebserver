@@ -259,7 +259,9 @@ bool WebServer::InitSocket_() {
         return false;
     }
     addr.sin_family = AF_INET;
+    // htonl()作用和htons()一样，不过它针对的是32位的
     addr.sin_addr.s_addr = htonl(INADDR_ANY);
+    // 将端口号由主机字节序转换为网络字节序的整数值
     addr.sin_port = htons(port_);
     struct linger optLinger = { 0 };
     

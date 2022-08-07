@@ -18,20 +18,27 @@ void SqlConnPool::Init(const char* host, int port,
     // 建立数据库连接池
     for (int i = 0; i < connSize; i++) {
         MYSQL *sql = nullptr;
+        // 数据库初始化
+        // 通过调用 mysql_init()来初始化一个连接句柄。通过调用mysql_real_connect()来连接服务器
         sql = mysql_init(sql);
         if (!sql) {
             LOG_ERROR("MySql init error!");
             assert(sql);
         }
+        // 数据库连接
         sql = mysql_real_connect(sql, host,
                                  user, pwd,
                                  dbName, port, nullptr, 0);
         if (!sql) {
             LOG_ERROR("MySql Connect error!");
         }
+        // 压入队列
         connQue_.push(sql);
     }
     MAX_CONN_ = connSize;
+    // 初始化信号量，值为 0 代表该信号量用于多线程间的同步，值如果大于 0 表示可以共享，用于多个相关进程间的同步
+    // MAX_CONN_为赋的初值
+    // https://blog.csdn.net/qq_19923217/article/details/82902442
     sem_init(&semId_, 0, MAX_CONN_);
 }
 
@@ -62,8 +69,10 @@ void SqlConnPool::ClosePool() {
     while(!connQue_.empty()) {
         auto item = connQue_.front();
         connQue_.pop();
+        // 关闭MySQL服务器的连接
         mysql_close(item);
     }
+    // 终止使用MySQL库
     mysql_library_end();        
 }
 
