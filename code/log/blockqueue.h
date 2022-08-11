@@ -6,6 +6,7 @@
 #include <condition_variable>
 #include <sys/time.h>
 
+// 基于deque实现的阻塞队列，采用生产者-消费者模型
 template<class T>
 class BlockDeque {
 public:

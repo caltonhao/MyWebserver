@@ -36,8 +36,7 @@ void Log::SetLevel(int level) {
     level_ = level;
 }
 
-void Log::init(int level = 1, const char* path, const char* suffix,
-    int maxQueueSize) {
+void Log::init(int level = 1, const char* path, const char* suffix, int maxQueueSize) {
     isOpen_ = true;
     level_ = level;
     if(maxQueueSize > 0) {
@@ -59,11 +58,11 @@ void Log::init(int level = 1, const char* path, const char* suffix,
     struct tm *sysTime = localtime(&timer);
     struct tm t = *sysTime;
     
-    path_ = path;
-    suffix_ = suffix;
+    path_ = path;  // 保存路径
+    suffix_ = suffix;  // 后缀名
     char fileName[LOG_NAME_LEN] = {0};
     snprintf(fileName, LOG_NAME_LEN - 1, "%s/%04d_%02d_%02d%s", 
-            path_, t.tm_year + 1900, t.tm_mon + 1, t.tm_mday, suffix_);
+            path_, t.tm_year + 1900, t.tm_mon + 1, t.tm_mday, suffix_);   // 生成日志文件名
     toDay_ = t.tm_mday;
 
     {
@@ -74,7 +73,7 @@ void Log::init(int level = 1, const char* path, const char* suffix,
             fclose(fp_); 
         }
 
-        fp_ = fopen(fileName, "a");
+        fp_ = fopen(fileName, "a");  // 打开文件
         if(fp_ == nullptr) {
             mkdir(path_, 0777);
             fp_ = fopen(fileName, "a");
@@ -92,6 +91,7 @@ void Log::write(int level, const char *format, ...) {
     va_list vaList;
 
     /* 日志日期 日志行数 */
+    // 新开一个日志文件
     if (toDay_ != t.tm_mday || (lineCount_ && (lineCount_  %  MAX_LINES == 0)))
     {
         unique_lock<mutex> locker(mtx_);
@@ -118,6 +118,7 @@ void Log::write(int level, const char *format, ...) {
         assert(fp_ != nullptr);
     }
 
+    // 将缓冲区中的数据写入文件或缓冲队列
     {
         unique_lock<mutex> locker(mtx_);
         lineCount_++;
@@ -137,7 +138,8 @@ void Log::write(int level, const char *format, ...) {
 
         if(isAsync_ && deque_ && !deque_->full()) {
             deque_->push_back(buff_.RetrieveAllToStr());
-        } else {
+        } 
+        else {
             fputs(buff_.Peek(), fp_);
         }
         buff_.RetrieveAll();

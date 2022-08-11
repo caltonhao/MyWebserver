@@ -270,7 +270,8 @@ bool WebServer::InitSocket_() {
         optLinger.l_onoff = 1;
         optLinger.l_linger = 1;
     }
-
+    
+    // （IPV4，TCP协议）
     listenFd_ = socket(AF_INET, SOCK_STREAM, 0);
     if(listenFd_ < 0) {
         LOG_ERROR("Create socket error!", port_);

@@ -37,7 +37,7 @@ private:
 private:
     static const int LOG_PATH_LEN = 256;  // 日志路径的最大长度
     static const int LOG_NAME_LEN = 256;  // 日志名称的最大长度
-    static const int MAX_LINES = 50000;
+    static const int MAX_LINES = 50000;   // 日志最大行数
 
     const char* path_;
     const char* suffix_;
@@ -49,9 +49,9 @@ private:
 
     bool isOpen_;
  
-    Buffer buff_;
-    int level_;
-    bool isAsync_;
+    Buffer buff_;  // 日志存储缓冲区
+    int level_;    // 等级
+    bool isAsync_; // 异步
 
     FILE* fp_;
     std::unique_ptr<BlockDeque<std::string>> deque_;
