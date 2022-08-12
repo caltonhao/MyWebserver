@@ -7,13 +7,15 @@
 #include <vector> //readv
 #include <atomic>
 #include <assert.h>
+
+// 自动增长的缓存区
 class Buffer {
 public:
-    Buffer(int initBuffSize = 1024);
+    Buffer(int initBuffSize = 1024);  // 默认大小1024字节
     ~Buffer() = default;
 
     size_t WritableBytes() const;       
-    size_t ReadableBytes() const ;
+    size_t ReadableBytes() const;
     size_t PrependableBytes() const;
 
     const char* Peek() const;

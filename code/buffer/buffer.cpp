@@ -17,10 +17,12 @@ size_t Buffer::PrependableBytes() const {
     return readPos_;
 }
 
+// 当前存储数据的头部指针
 const char* Buffer::Peek() const {
     return BeginPtr_() + readPos_;
 }
 
+// 回收空间
 void Buffer::Retrieve(size_t len) {
     assert(len <= ReadableBytes());
     readPos_ += len;
@@ -44,6 +46,7 @@ std::string Buffer::RetrieveAllToStr() {
     return str;
 }
 
+// 写的起始地址
 const char* Buffer::BeginWriteConst() const {
     return BeginPtr_() + writePos_;
 }
@@ -52,6 +55,7 @@ char* Buffer::BeginWrite() {
     return BeginPtr_() + writePos_;
 }
 
+// 移动写指针
 void Buffer::HasWritten(size_t len) {
     writePos_ += len;
 } 
@@ -77,6 +81,7 @@ void Buffer::Append(const Buffer& buff) {
     Append(buff.Peek(), buff.ReadableBytes());
 }
 
+// 确认空间足够写
 void Buffer::EnsureWriteable(size_t len) {
     if(WritableBytes() < len) {
         MakeSpace_(len);
@@ -92,6 +97,7 @@ ssize_t Buffer::ReadFd(int fd, int* saveErrno) {
     const size_t writable = WritableBytes();
     
     /* 分散读，保证数据全部读完 */
+    // 数据会被依次读到这两部分存储空间
     // iov[0] Buffer内置的数组_buffer，默认大小是1024
     // iov[1] buff临时数组，大小为65535
     iov[0].iov_base = BeginPtr_() + writePos_;
@@ -99,13 +105,15 @@ ssize_t Buffer::ReadFd(int fd, int* saveErrno) {
     iov[1].iov_base = buff;
     iov[1].iov_len = sizeof(buff);
 
-    const ssize_t len = readv(fd, iov, 2);  // 真正的读操作
+    const ssize_t len = readv(fd, iov, 2);  // 将数据读到两片存储区中
     if(len < 0) {
         *saveErrno = errno;
     }
+    // 如果buffer中空间足够则会直接读入
     else if(static_cast<size_t>(len) <= writable) {
         writePos_ += len;
     }
+    // 空间不够时，多出的数据读到64KB大小的buff中
     else {
         writePos_ = buffer_.size();
         Append(buff, len - writable);
@@ -113,6 +121,7 @@ ssize_t Buffer::ReadFd(int fd, int* saveErrno) {
     return len;
 }
 
+// buffer向外面写，也就是外面读取buffer中的数据
 ssize_t Buffer::WriteFd(int fd, int* saveErrno) {
     size_t readSize = ReadableBytes();
     ssize_t len = write(fd, Peek(), readSize);
@@ -133,10 +142,11 @@ const char* Buffer::BeginPtr_() const {
 }
 
 void Buffer::MakeSpace_(size_t len) {
+    // 当剩余空间不足时，申请更大的空间
     if(WritableBytes() + PrependableBytes() < len) {
         buffer_.resize(writePos_ + len + 1);
     } 
-    else {
+    else {  // 当剩余空间足够时，将已有数据移到起始位置
         size_t readable = ReadableBytes();
         std::copy(BeginPtr_() + readPos_, BeginPtr_() + writePos_, BeginPtr_());
         readPos_ = 0;

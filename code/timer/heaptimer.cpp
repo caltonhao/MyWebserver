@@ -1,5 +1,6 @@
 #include "heaptimer.h"
 
+// 向上调整节点，保持小根堆的结构
 void HeapTimer::siftup_(size_t i) {
     assert(i >= 0 && i < heap_.size());
     size_t j = (i - 1) / 2;
@@ -11,6 +12,7 @@ void HeapTimer::siftup_(size_t i) {
     }
 }
 
+// 交换节点
 void HeapTimer::SwapNode_(size_t i, size_t j) {
     assert(i >= 0 && i < heap_.size());
     assert(j >= 0 && j < heap_.size());
@@ -19,6 +21,7 @@ void HeapTimer::SwapNode_(size_t i, size_t j) {
     ref_[heap_[j].id] = j;
 } 
 
+// 向下调整节点，保持小根堆的结构
 bool HeapTimer::siftdown_(size_t index, size_t n) {
     assert(index >= 0 && index < heap_.size());
     assert(n >= 0 && n <= heap_.size());
