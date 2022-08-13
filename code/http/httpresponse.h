@@ -10,6 +10,7 @@
 #include "../buffer/buffer.h"
 #include "../log/log.h"
 
+// 生成相应报文
 class HttpResponse {
 public:
     HttpResponse();

@@ -219,8 +219,10 @@ void WebServer::OnRead_(HttpConn* client) {
 // 业务逻辑的处理
 void WebServer::OnProcess(HttpConn* client) {
     if(client->process()) {
+        // 如果解析请求，并且生成响应报文成功，则修改事件为out
         epoller_->ModFd(client->GetFd(), connEvent_ | EPOLLOUT);
     } else {
+        // 如果没有请求数据，则监听事件依然为in
         epoller_->ModFd(client->GetFd(), connEvent_ | EPOLLIN);
     }
 }
@@ -247,6 +249,7 @@ void WebServer::OnWrite_(HttpConn* client) {
             return;
         }
     }
+    // 没有保持长链接并且写完了，则关闭连接
     CloseConn_(client);
 }
 

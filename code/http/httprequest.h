@@ -13,6 +13,7 @@
 #include "../pool/sqlconnpool.h"
 #include "../pool/sqlconnRAII.h"
 
+// 解析请求报文
 class HttpRequest {
 public:
     enum PARSE_STATE {

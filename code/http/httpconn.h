@@ -51,7 +51,6 @@ public:
     static std::atomic<int> userCount; // 总共的客户单的连接数
     
 private:
-   
     int fd_;
     struct  sockaddr_in addr_;
 

@@ -31,7 +31,7 @@ bool HttpRequest::parse(Buffer& buff) {
     }
     // buff中有数据可读，并且状态没有到FINISH，就一直解析
     while(buff.ReadableBytes() && state_ != FINISH) {
-        // 获取一行数据，根据\r\n为结束标志
+        // 循环获取每一行数据，根据\r\n为结束标志
         const char* lineEnd = search(buff.Peek(), buff.BeginWriteConst(), CRLF, CRLF + 2);
         std::string line(buff.Peek(), lineEnd);
         switch(state_)
@@ -59,7 +59,7 @@ bool HttpRequest::parse(Buffer& buff) {
             break;
         }
         if(lineEnd == buff.BeginWrite()) { break; }
-        buff.RetrieveUntil(lineEnd + 2);
+        buff.RetrieveUntil(lineEnd + 2); // 丢弃报文结束标志\r\n
     }
     LOG_DEBUG("[%s], [%s], [%s]", method_.c_str(), path_.c_str(), version_.c_str());
     return true;
@@ -191,11 +191,12 @@ void HttpRequest::ParseFromUrlencoded_() {
 bool HttpRequest::UserVerify(const string &name, const string &pwd, bool isLogin) {
     if(name == "" || pwd == "") { return false; }
     LOG_INFO("Verify name:%s pwd:%s", name.c_str(), pwd.c_str());
+    // 连接数据库进行查询
     MYSQL* sql;
     SqlConnRAII(&sql,  SqlConnPool::Instance());
     assert(sql);
     
-    bool flag = false;
+    bool flag = false; 
     unsigned int j = 0;
     char order[256] = { 0 };
     MYSQL_FIELD *fields = nullptr;

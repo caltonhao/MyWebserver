@@ -1,5 +1,4 @@
 #include "httpresponse.h"
-
 using namespace std;
 
 // 文件后缀 对应的 MIME-TYPE类型，用在响应头Content-Type中
@@ -55,6 +54,7 @@ HttpResponse::~HttpResponse() {
 void HttpResponse::Init(const string& srcDir, string& path, bool isKeepAlive, int code){
     assert(srcDir != "");
     
+    // 解除内存映射
     if(mmFile_) { UnmapFile(); }
 
     code_ = code;
@@ -78,10 +78,11 @@ void HttpResponse::MakeResponse(Buffer& buff) {
     else if(code_ == -1) { 
         code_ = 200; 
     }
-    ErrorHtml_();
-    AddStateLine_(buff);
-    AddHeader_(buff);
-    AddContent_(buff);
+    
+    ErrorHtml_(); // 判断是否有错误的情况
+    AddStateLine_(buff); // 添加状态行
+    AddHeader_(buff); // 添加响应头部
+    AddContent_(buff); // 添加响应正文
 }
 
 char* HttpResponse::File() {
@@ -92,6 +93,7 @@ size_t HttpResponse::FileLen() const {
     return mmFileStat_.st_size;
 }
 
+// 处理错误的情况
 void HttpResponse::ErrorHtml_() {
     if(CODE_PATH.count(code_) == 1) {
         path_ = CODE_PATH.find(code_)->second;
@@ -100,6 +102,7 @@ void HttpResponse::ErrorHtml_() {
 }
 
 // 添加响应状态行
+// “HTTP/1.1 200 OK”
 void HttpResponse::AddStateLine_(Buffer& buff) {
     string status;
     if(CODE_STATUS.count(code_) == 1) {
@@ -166,6 +169,7 @@ string HttpResponse::GetFileType_() {
     return "text/plain";
 }
 
+// 添加错误情况的响应正文内容
 void HttpResponse::ErrorContent(Buffer& buff, string message) 
 {
     string body;

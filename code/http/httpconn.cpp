@@ -55,7 +55,7 @@ int HttpConn::GetPort() const {
 }
 
 ssize_t HttpConn::read(int* saveErrno) {
-    // 一次性读出所有数据(ET+非阻塞)
+    // 一次性读出所有数据(ET+非阻塞)，读到buffer中
     ssize_t len = -1;
     do {
         len = readBuff_.ReadFd(fd_, saveErrno);
@@ -70,6 +70,8 @@ ssize_t HttpConn::write(int* saveErrno) {
     ssize_t len = -1;
     do {
         // 分散写数据
+        // 将iov中的数据写入文件描述符
+        // 实际上对于buffer来说，是读buffer
         len = writev(fd_, iov_, iovCnt_);
         if(len <= 0) {
             *saveErrno = errno;
@@ -81,6 +83,7 @@ ssize_t HttpConn::write(int* saveErrno) {
         else if(static_cast<size_t>(len) > iov_[0].iov_len) {
             iov_[1].iov_base = (uint8_t*) iov_[1].iov_base + (len - iov_[0].iov_len);
             iov_[1].iov_len -= (len - iov_[0].iov_len);
+            // 第一块内存的数据已经全部读出来了，清空
             if(iov_[0].iov_len) {
                 writeBuff_.RetrieveAll();
                 iov_[0].iov_len = 0;
@@ -97,6 +100,7 @@ ssize_t HttpConn::write(int* saveErrno) {
 }
 
 // 业务逻辑处理
+// 对读到的数据进行解析处理并生成响应报文
 bool HttpConn::process() {
     // 初始化请求对象
     request_.Init();
@@ -113,7 +117,7 @@ bool HttpConn::process() {
         response_.Init(srcDir, request_.path(), false, 400);  // 请求报文中有语法错误
     }
 
-    // 生成响应信息（writeBuff_中保存着响应的一些信息）
+    // 生成响应信息写到writeBuff_中（writeBuff_中保存着响应的一些信息）
     response_.MakeResponse(writeBuff_);
     /* 响应头 */
     iov_[0].iov_base = const_cast<char*>(writeBuff_.Peek());
